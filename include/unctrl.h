@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright (c) 2003-2005,2008 Free Software Foundation, Inc.              *
+ * Copyright (c) 1998,2000 Free Software Foundation, Inc.                   *
  *                                                                          *
  * Permission is hereby granted, free of charge, to any person obtaining a  *
  * copy of this software and associated documentation files (the            *
@@ -26,56 +26,38 @@
  * authorization.                                                           *
  ****************************************************************************/
 
+/****************************************************************************
+ *  Author: Zeyd M. Ben-Halim <zmbenhal@netcom.com> 1992,1995               *
+ *     and: Eric S. Raymond <esr@snark.thyrsus.com>                         *
+ ****************************************************************************/
+
 /*
-**	Support functions for wide/narrow conversion.
-*/
+ * unctrl.h
+ *
+ * Display a printable version of a control character.
+ * Control characters are displayed in caret notation (^x), DELETE is displayed
+ * as ^?. Printable characters are displayed as is.
+ */
 
-#include <curses.priv.h>
-#include <wchar.h>
+/* $Id: unctrl.h.in,v 1.10 2001/03/24 21:53:25 tom Exp $ */
 
-MODULE_ID("$Id: charable.c,v 1.5 2008/07/05 20:51:41 tom Exp $")
+#ifndef NCURSES_UNCTRL_H_incl
+#define NCURSES_UNCTRL_H_incl	1
 
-NCURSES_EXPORT(bool) _nc_is_charable(wchar_t ch)
-{
-    bool result;
-#if HAVE_WCTOB
-    result = (wctob((wint_t) ch) == (int) ch);
-#else
-    result = (_nc_to_char(ch) >= 0);
+#undef  NCURSES_VERSION
+#define NCURSES_VERSION "5.7"
+
+#ifdef __cplusplus
+extern "C" {
 #endif
-    return result;
-}
 
-NCURSES_EXPORT(int) _nc_to_char(wint_t ch)
-{
-    int result;
-#if HAVE_WCTOB
-    result = wctob(ch);
-#elif HAVE_WCTOMB
-    char temp[MB_LEN_MAX];
-    result = wctomb(temp, ch);
-    if (strlen(temp) == 1)
-	result = UChar(temp[0]);
-    else
-	result = -1;
-#endif
-    return result;
-}
+#include <curses.h>
 
-NCURSES_EXPORT(wint_t) _nc_to_widechar(int ch)
-{
-    wint_t result;
-#if HAVE_BTOWC
-    result = btowc(ch);
-#elif HAVE_MBTOWC
-    wchar_t convert;
-    char temp[2];
-    temp[0] = ch;
-    temp[1] = '\0';
-    if (mbtowc(&convert, temp, 1) >= 0)
-	result = convert;
-    else
-	result = WEOF;
-#endif
-    return result;
+#undef unctrl
+NCURSES_EXPORT(NCURSES_CONST char *) unctrl (chtype);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* NCURSES_UNCTRL_H_incl */

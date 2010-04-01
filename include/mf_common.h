@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright (c) 2003-2005,2008 Free Software Foundation, Inc.              *
+ * Copyright (c) 1998-2003,2004 Free Software Foundation, Inc.              *
  *                                                                          *
  * Permission is hereby granted, free of charge, to any person obtaining a  *
  * copy of this software and associated documentation files (the            *
@@ -26,56 +26,70 @@
  * authorization.                                                           *
  ****************************************************************************/
 
-/*
-**	Support functions for wide/narrow conversion.
-*/
+/****************************************************************************
+ *   Author:  Juergen Pfeifer, 1995,1997                                    *
+ ****************************************************************************/
 
-#include <curses.priv.h>
-#include <wchar.h>
+/* $Id: mf_common.h,v 0.22 2005/11/26 15:26:52 tom Exp $ */
 
-MODULE_ID("$Id: charable.c,v 1.5 2008/07/05 20:51:41 tom Exp $")
+/* Common internal header for menu and form library */
 
-NCURSES_EXPORT(bool) _nc_is_charable(wchar_t ch)
-{
-    bool result;
-#if HAVE_WCTOB
-    result = (wctob((wint_t) ch) == (int) ch);
+#ifndef MF_COMMON_H_incl
+#define MF_COMMON_H_incl 1
+
+#include <ncurses_cfg.h>
+#include <curses.h>
+
+#include <stdlib.h>
+#include <sys/types.h>
+#include <assert.h>
+#include <string.h>
+#include <ctype.h>
+#include <errno.h>
+
+#if DECL_ERRNO
+extern int errno;
+#endif
+
+/* in case of debug version we ignore the suppression of assertions */
+#ifdef TRACE
+#  ifdef NDEBUG
+#    undef NDEBUG
+#  endif
+#endif
+
+#include <nc_alloc.h>
+
+#if USE_RCS_IDS
+#define MODULE_ID(id) static const char Ident[] = id;
 #else
-    result = (_nc_to_char(ch) >= 0);
+#define MODULE_ID(id) /*nothing*/
 #endif
-    return result;
-}
 
-NCURSES_EXPORT(int) _nc_to_char(wint_t ch)
-{
-    int result;
-#if HAVE_WCTOB
-    result = wctob(ch);
-#elif HAVE_WCTOMB
-    char temp[MB_LEN_MAX];
-    result = wctomb(temp, ch);
-    if (strlen(temp) == 1)
-	result = UChar(temp[0]);
-    else
-	result = -1;
-#endif
-    return result;
-}
 
-NCURSES_EXPORT(wint_t) _nc_to_widechar(int ch)
-{
-    wint_t result;
-#if HAVE_BTOWC
-    result = btowc(ch);
-#elif HAVE_MBTOWC
-    wchar_t convert;
-    char temp[2];
-    temp[0] = ch;
-    temp[1] = '\0';
-    if (mbtowc(&convert, temp, 1) >= 0)
-	result = convert;
-    else
-	result = WEOF;
+/* Maximum regular 8-bit character code */
+#define MAX_REGULAR_CHARACTER (0xff)
+
+#define SET_ERROR(code) (errno=(code))
+#define GET_ERROR()     (errno)
+
+#ifdef TRACE
+#define RETURN(code)    returnCode( SET_ERROR(code) )
+#else
+#define RETURN(code)    return( SET_ERROR(code) )
 #endif
-    return result;
-}
+
+/* The few common values in the status fields for menus and forms */
+#define _POSTED         (0x01U)  /* menu or form is posted                  */
+#define _IN_DRIVER      (0x02U)  /* menu or form is processing hook routine */
+
+/* Call object hook */
+#define Call_Hook( object, handler ) \
+   if ( (object) != 0 && ((object)->handler) != (void *) 0 )\
+   {\
+	(object)->status |= _IN_DRIVER;\
+	(object)->handler(object);\
+	(object)->status &= ~_IN_DRIVER;\
+   }
+
+#endif /* MF_COMMON_H_incl */

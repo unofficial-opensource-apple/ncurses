@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright (c) 2003-2005,2008 Free Software Foundation, Inc.              *
+ * Copyright (c) 1998-2001,2006 Free Software Foundation, Inc.              *
  *                                                                          *
  * Permission is hereby granted, free of charge, to any person obtaining a  *
  * copy of this software and associated documentation files (the            *
@@ -26,56 +26,52 @@
  * authorization.                                                           *
  ****************************************************************************/
 
-/*
-**	Support functions for wide/narrow conversion.
-*/
+/****************************************************************************
+ *  Author: Zeyd M. Ben-Halim <zmbenhal@netcom.com> 1995                    *
+ *     and: Eric S. Raymond <esr@snark.thyrsus.com>                         *
+ ****************************************************************************/
 
-#include <curses.priv.h>
-#include <wchar.h>
+/* $Id: panel.h,v 1.10 2006/05/27 19:49:40 tom Exp $ */
 
-MODULE_ID("$Id: charable.c,v 1.5 2008/07/05 20:51:41 tom Exp $")
+/* panel.h -- interface file for panels library */
 
-NCURSES_EXPORT(bool) _nc_is_charable(wchar_t ch)
+#ifndef NCURSES_PANEL_H_incl
+#define NCURSES_PANEL_H_incl 1
+
+#include <curses.h>
+
+typedef struct panel
 {
-    bool result;
-#if HAVE_WCTOB
-    result = (wctob((wint_t) ch) == (int) ch);
-#else
-    result = (_nc_to_char(ch) >= 0);
-#endif
-    return result;
-}
+  WINDOW *win;
+  struct panel *below;
+  struct panel *above;
+  NCURSES_CONST void *user;
+} PANEL;
 
-NCURSES_EXPORT(int) _nc_to_char(wint_t ch)
-{
-    int result;
-#if HAVE_WCTOB
-    result = wctob(ch);
-#elif HAVE_WCTOMB
-    char temp[MB_LEN_MAX];
-    result = wctomb(temp, ch);
-    if (strlen(temp) == 1)
-	result = UChar(temp[0]);
-    else
-	result = -1;
+#if	defined(__cplusplus)
+extern "C" {
 #endif
-    return result;
-}
 
-NCURSES_EXPORT(wint_t) _nc_to_widechar(int ch)
-{
-    wint_t result;
-#if HAVE_BTOWC
-    result = btowc(ch);
-#elif HAVE_MBTOWC
-    wchar_t convert;
-    char temp[2];
-    temp[0] = ch;
-    temp[1] = '\0';
-    if (mbtowc(&convert, temp, 1) >= 0)
-	result = convert;
-    else
-	result = WEOF;
-#endif
-    return result;
+extern NCURSES_EXPORT(WINDOW*) panel_window (const PANEL *);
+extern NCURSES_EXPORT(void)    update_panels (void);
+extern NCURSES_EXPORT(int)     hide_panel (PANEL *);
+extern NCURSES_EXPORT(int)     show_panel (PANEL *);
+extern NCURSES_EXPORT(int)     del_panel (PANEL *);
+extern NCURSES_EXPORT(int)     top_panel (PANEL *);
+extern NCURSES_EXPORT(int)     bottom_panel (PANEL *);
+extern NCURSES_EXPORT(PANEL*)  new_panel (WINDOW *);
+extern NCURSES_EXPORT(PANEL*)  panel_above (const PANEL *);
+extern NCURSES_EXPORT(PANEL*)  panel_below (const PANEL *);
+extern NCURSES_EXPORT(int)     set_panel_userptr (PANEL *, NCURSES_CONST void *);
+extern NCURSES_EXPORT(NCURSES_CONST void*) panel_userptr (const PANEL *);
+extern NCURSES_EXPORT(int)     move_panel (PANEL *, int, int);
+extern NCURSES_EXPORT(int)     replace_panel (PANEL *,WINDOW *);
+extern NCURSES_EXPORT(int)     panel_hidden (const PANEL *);
+
+#if	defined(__cplusplus)
 }
+#endif
+
+#endif /* NCURSES_PANEL_H_incl */
+
+/* end of panel.h */

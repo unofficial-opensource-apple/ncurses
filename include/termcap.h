@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright (c) 2003-2005,2008 Free Software Foundation, Inc.              *
+ * Copyright (c) 1998,2000 Free Software Foundation, Inc.                   *
  *                                                                          *
  * Permission is hereby granted, free of charge, to any person obtaining a  *
  * copy of this software and associated documentation files (the            *
@@ -26,56 +26,50 @@
  * authorization.                                                           *
  ****************************************************************************/
 
-/*
-**	Support functions for wide/narrow conversion.
-*/
+/****************************************************************************
+ *  Author: Zeyd M. Ben-Halim <zmbenhal@netcom.com> 1992,1995               *
+ *     and: Eric S. Raymond <esr@snark.thyrsus.com>                         *
+ ****************************************************************************/
 
-#include <curses.priv.h>
-#include <wchar.h>
+/* $Id: termcap.h.in,v 1.16 2001/03/24 21:53:27 tom Exp $ */
 
-MODULE_ID("$Id: charable.c,v 1.5 2008/07/05 20:51:41 tom Exp $")
+#ifndef NCURSES_TERMCAP_H_incl
+#define NCURSES_TERMCAP_H_incl	1
 
-NCURSES_EXPORT(bool) _nc_is_charable(wchar_t ch)
+#undef  NCURSES_VERSION
+#define NCURSES_VERSION "5.7"
+
+#include <ncurses_dll.h>
+
+#ifdef __cplusplus
+extern "C"
 {
-    bool result;
-#if HAVE_WCTOB
-    result = (wctob((wint_t) ch) == (int) ch);
-#else
-    result = (_nc_to_char(ch) >= 0);
-#endif
-    return result;
-}
+#endif /* __cplusplus */
 
-NCURSES_EXPORT(int) _nc_to_char(wint_t ch)
-{
-    int result;
-#if HAVE_WCTOB
-    result = wctob(ch);
-#elif HAVE_WCTOMB
-    char temp[MB_LEN_MAX];
-    result = wctomb(temp, ch);
-    if (strlen(temp) == 1)
-	result = UChar(temp[0]);
-    else
-	result = -1;
-#endif
-    return result;
-}
+#include <sys/types.h>
 
-NCURSES_EXPORT(wint_t) _nc_to_widechar(int ch)
-{
-    wint_t result;
-#if HAVE_BTOWC
-    result = btowc(ch);
-#elif HAVE_MBTOWC
-    wchar_t convert;
-    char temp[2];
-    temp[0] = ch;
-    temp[1] = '\0';
-    if (mbtowc(&convert, temp, 1) >= 0)
-	result = convert;
-    else
-	result = WEOF;
+#undef  NCURSES_CONST 
+#define NCURSES_CONST /*nothing*/ 
+
+#undef  NCURSES_OSPEED 
+#define NCURSES_OSPEED short 
+
+extern NCURSES_EXPORT_VAR(char) PC;
+extern NCURSES_EXPORT_VAR(char *) UP;
+extern NCURSES_EXPORT_VAR(char *) BC;
+extern NCURSES_EXPORT_VAR(NCURSES_OSPEED) ospeed; 
+
+#if !defined(NCURSES_TERM_H_incl)
+extern NCURSES_EXPORT(char *) tgetstr (NCURSES_CONST char *, char **);
+extern NCURSES_EXPORT(char *) tgoto (const char *, int, int);
+extern NCURSES_EXPORT(int) tgetent (char *, const char *);
+extern NCURSES_EXPORT(int) tgetflag (NCURSES_CONST char *);
+extern NCURSES_EXPORT(int) tgetnum (NCURSES_CONST char *);
+extern NCURSES_EXPORT(int) tputs (const char *, int, int (*)(int));
 #endif
-    return result;
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* NCURSES_TERMCAP_H_incl */
